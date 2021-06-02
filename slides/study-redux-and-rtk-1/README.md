@@ -1,4 +1,12 @@
-# Welcome to [Slidev](https://github.com/slidevjs/slidev)!
+#  社内勉強会向け資料1
+
+Reduxの動きの流れ、ざっくりとした解説
+
+
+
+---
+
+
 
 To start the slide show:
 
