@@ -4,7 +4,7 @@ class: 'text-center'
 highlighter: shiki
 ---
 
-## ReduxとRTKを使えるようになろう
+## ReduxとRTKを使えるようになろう(1)
 
 ---
 
@@ -17,7 +17,7 @@ highlighter: shiki
 - 🙅‍♂️
   - Redux or ReduxToolkitをばりばり使ってる人
   - その他の状態管理手法とのメリデメをある程度理解している人
-  - そもそもReactを知らない人
+  - そもそもReact/Reduxを知らない人
 
 <br/>
 <br/>
@@ -32,10 +32,19 @@ highlighter: shiki
 - わからない箇所があったらその場で質問という形でやろうと思います
 - ReduxToolKitを使っている方はRTKの存在を一旦忘れてください
   - 簡単に書けるものの、最初の理解には向いていないので...
+  - 後ほど触れます
+
+
+---
+layout: center
+class: text-center
+---
+
+## そもそもReduxとは？
 
 ---
 
-## 状態管理の選択肢
+## 状態管理の主要な選択肢
 
 
 |     |     |
@@ -50,14 +59,12 @@ highlighter: shiki
 などなど、、
 
 ---
-
----
 layout: center
 class: text-center
 ---
 
-## > Reduxはただの一手法 <
-
+## > Reduxは状態管理の一手法でしかない <
+（そんなに複雑に考えないで）
 ---
 layout: center
 class: text-center
@@ -116,7 +123,7 @@ function reducer(state, action) {
 function Counter() {
   const [state, dispatch] = useReducer(reducer, initialState);
   return (
-      <button onClick={() => dispatch({type: 'decrement'})}>-</button>
+      <button onClick={() => dispatch({type: 'increment'})}>-</button>
   );
 }
 ```
@@ -169,7 +176,7 @@ graph LR
 https://ja.reactjs.org/docs/hooks-reference.html#usereducer
 
 <div class="flex justify-center pt-8">
-↓
+--
 </div>
 
 <div class="flex justify-center pt-8">
@@ -231,20 +238,6 @@ const initialState: InitialState =  {
 ```
 todo appのstate初期値
 
----
-
-# action
-
-```ts
-{
-  type: 'ADD_TODO',
-  payload: {
-    text: ''
-  }
-}
-```
-dispatchするオブジェクト   
-
 --- 
 
 # actionCreator
@@ -257,7 +250,7 @@ const addTodo = (text:string) => ({
   }
 })
 ```
-前述した「action」を作る関数  
+「action」を作る関数  
 
 
 ---
@@ -285,7 +278,6 @@ actionを受け取り、stateを更新する
 # store
 
 ```ts
-// reducer
 const store = createStore(reducer)
 ```
 stateを保持し、reducerを動かすためのdispatchを提供したりする
@@ -331,12 +323,101 @@ class: text-center
 
 ---
 
-useDispatch,useSelector,createStore以外は全てただのプレーンなjs
+useDispatch,useSelector,createStore以外は全てただのプレーンなjsということ  
+
+---
+
+<div class="grid grid-cols-2">
+  <div>
+
+```tsx
+// Redux
+const initialState =  {text: []}
+const addTodo = (text:string) => ({
+  type: 'ADD_TODO',
+  payload: { text }
+})
+const reducer = (state = initialState , action) => {
+  switch (action.type) {
+    case 'ADD_TODO': {
+        return {
+          ...state,
+          text: [...state.text,action.payload.text]
+        }
+    }
+  }
+}
+const store = createStore(reducer)
+const Component = () => {
+  const dispatch = useDispatch();
+  const text = useSelector((state) => state.text)
+  return (
+    <button onClick={() => {dispatch(addTodo('てきすと'))}} >Add Todo</button>
+  )
+}
+const App = () => (
+  <Provider store={Store}>
+    <Component />                                    
+  </Provider>
+)
+```
+
+  </div>
+
+  <div>
+
+```tsx
+// useReducer
+const initialState =  {text: []}
+const addTodo = (text:string) => ({
+  type: 'ADD_TODO',
+  payload: { text }
+})
+function reducer(state, action) {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return {
+          ...state,
+          text: [...state.text,action.payload.text]
+        }
+    default:
+      throw new Error();
+  }
+}
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  return (
+      <button onClick={() => dispatch(addTodo('てきすと'))}>-</button>
+  );
+}
+```
+
+  </div>
+
+</div>
+
+
+---
+layout: center
+class: text-center
+
+---
+
+ほぼuseReducerと同じ
+
+---
+layout: center
+class: text-center
+
+---
+
+Reduxは流れさえ理解できればsimpleなもの
+
 
 --- 
 
 
-# まとめ
+# うごきの流れ
 
 <div class="flex justify-center">
 
@@ -351,4 +432,44 @@ graph LR
 </div>
 
 ---
+
+---
+layout: center
+class: text-center
+
+---
+
+じゃあContextAPI & useReducer使えばいいのでは...?
+
+
+---
+layout: center
+class: text-center
+
+---
+
+はい  （一応違いがあります）
+
+---
+
+# 違いとか
+
+- Providerを複数使わない/使ってはいけない
+  - single source of truthという原則
+  - グローバルな領域に全てのstateを突っ込むという思想
+- middlewareが使える
+  - redux-thunkなどの非同期処理のためのものなど
+- time travel debugging
+  - devtoolにより「このactionをdispatchした時のUI/stateを表示する」行為が可能
+
+---
+
+# おなやみ
+
+- reducer/actionCreatorいちいち書くのだるくない?
+- reducer肥大化しすぎて厳しくなってきた 
+- 非同期処理どこに書くのが正解?
+- ロジックはどこに書けばいいの? actionCreator?reducer?
+- RTKと全然書き方違うんですけど、、
+
 
